@@ -9,6 +9,10 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [instituteName, setInstituteName] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [phone, setPhone] = useState("");
+  const [yearsOfExperience, setYearsOfExperience] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -40,7 +44,18 @@ export default function SignUp() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password, instituteName }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          instituteName,
+          designation,
+          licenseNumber,
+          phone,
+          yearsOfExperience: yearsOfExperience
+            ? parseInt(yearsOfExperience)
+            : undefined,
+        }),
       });
 
       const data = await response.json();
@@ -106,82 +121,72 @@ export default function SignUp() {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && <div className="text-red-500 text-center">{error}</div>}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="name" className="sr-only">
-                Full Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                onClick={togglePasswordVisibility}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <Eye className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
-            </div>
-            <div>
-              <label htmlFor="institute-name" className="sr-only">
-                Institute Name
-              </label>
-              <input
-                id="institute-name"
-                name="instituteName"
-                type="text"
-                autoComplete="organization"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Institute Name"
-                value={instituteName}
-                onChange={(e) => setInstituteName(e.target.value)}
-              />
-            </div>
+          <div className="rounded-md shadow-sm space-y-4">
+            {/* Input fields for each attribute */}
+            <input
+              id="name"
+              type="text"
+              placeholder="Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <input
+              id="email"
+              type="email"
+              placeholder="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <input
+              id="institute-name"
+              type="text"
+              placeholder="Institute Name"
+              value={instituteName}
+              onChange={(e) => setInstituteName(e.target.value)}
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <input
+              id="designation"
+              type="text"
+              placeholder="Designation (Optional)"
+              value={designation}
+              onChange={(e) => setDesignation(e.target.value)}
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <input
+              id="license-number"
+              type="text"
+              placeholder="License Number (Optional)"
+              value={licenseNumber}
+              onChange={(e) => setLicenseNumber(e.target.value)}
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <input
+              id="phone"
+              type="text"
+              placeholder="Phone Number (Optional)"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <input
+              id="years-of-experience"
+              type="number"
+              placeholder="Years of Experience (Optional)"
+              value={yearsOfExperience}
+              onChange={(e) => setYearsOfExperience(e.target.value)}
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
           </div>
 
           <div>

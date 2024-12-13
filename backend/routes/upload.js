@@ -1,0 +1,121 @@
+import express from "express";
+import authMiddleware from "../middleware/authMiddleware.js";
+import Patient from "../models/Patient.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+const router = express.Router();
+
+// Multer configuration for storing X-ray images
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/xrays");
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(
+      null,
+      `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`
+    );
+  },
+});
+
+const upload = multer({ storage });
+
+router.get("/patients", authMiddleware, async (req, res) => {
+  try {
+    const patients = await Patient.find({ user: req.user.id }).select(
+      "-xrayImages"
+    );
+
+    if (!patients.length) {
+      return res.status(404).json({ message: "No patients found" });
+    }
+
+    res.status(200).json(patients);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/add", authMiddleware, async (req, res) => {
+  const { name, age, gender, description } = req.body;
+
+  if (!name || !age || !gender) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  try {
+    const patient = new Patient({
+      name,
+      age,
+      gender,
+      user: req.user.id,
+      description,
+    });
+
+    await patient.save();
+    res.status(201).json({ message: "Patient added successfully", patient });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post(
+  "/upload-xray/:patientId",
+  authMiddleware,
+  upload.single("xray"),
+  async (req, res) => {
+    const { patientId } = req.params;
+
+    try {
+      // Find patient
+      const patient = await Patient.findOne({
+        _id: patientId,
+        user: req.user.id,
+      });
+
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No X-ray image uploaded" });
+      }
+
+      // Store uploaded X-ray image path
+      const xrayPath = req.file.path;
+
+      // Generate dummy result
+      const resultImagePath = "/backend/uploads/results/dummyresult.png";
+      const disease = "Dummy";
+      const description =
+        "To store both the uploaded X-ray image and its results (another image, disease label, and description), we can enhance the PatientSchema to include additional fields for the results of each X-ray image.";
+
+      patient.xrayImages.push({
+        imagePath: xrayPath,
+        result: {
+          resultImage: resultImagePath,
+          disease,
+          description,
+        },
+      });
+
+      await patient.save();
+
+      // Send dummy response
+      res.status(200).json({
+        message: "X-ray uploaded and results generated",
+        result: { resultImagePath, disease, description },
+      });
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+export default router;

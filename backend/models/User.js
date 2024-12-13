@@ -5,6 +5,10 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   instituteName: { type: String, required: true },
+  designation: { type: String },
+  licenseNumber: { type: String, unique: true },
+  phone: { type: String },
+  yearsOfExperience: { type: Number },
 });
 
 export default mongoose.model("User", userSchema);

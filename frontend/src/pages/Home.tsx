@@ -1,8 +1,19 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Upload, Search, BarChart, Shield, Users, Clock } from "lucide-react";
+import {
+  Upload,
+  Search,
+  BarChart,
+  History,
+  Shield,
+  Users,
+  Clock,
+  UserCircle,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
+  const navigate = useNavigate();
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <motion.h1
@@ -18,6 +29,7 @@ export default function Home() {
           className="bg-white p-6 rounded-lg shadow-md"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          onClick={() => navigate("/upload")}
         >
           <Upload className="h-12 w-12 text-blue-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-center mb-2">
@@ -31,22 +43,24 @@ export default function Home() {
           className="bg-white p-6 rounded-lg shadow-md"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          onClick={() => navigate("/history")}
         >
-          <Search className="h-12 w-12 text-green-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-center mb-2">Analyze</h2>
+          <History className="h-12 w-12 text-green-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-center mb-2">History</h2>
           <p className="text-gray-600 text-center">
-            Get instant analysis of chest diseases
+            View your past X-ray uploads and results
           </p>
         </motion.div>
         <motion.div
           className="bg-white p-6 rounded-lg shadow-md"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          onClick={() => navigate("/profile")}
         >
-          <BarChart className="h-12 w-12 text-purple-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-center mb-2">Visualize</h2>
+          <UserCircle className="h-12 w-12 text-purple-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-center mb-2">Profile</h2>
           <p className="text-gray-600 text-center">
-            View detailed visual interpretations
+            View and update your personal information
           </p>
         </motion.div>
       </div>

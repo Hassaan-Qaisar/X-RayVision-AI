@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
+import profileRoutes from "./routes/profile.js";
+import uploadRoutes from "./routes/upload.js";
 
 dotenv.config();
 
@@ -17,6 +19,8 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/upload", uploadRoutes);
 
 const PORT = process.env.PORT || 9000;
 app.listen(PORT, () => {
