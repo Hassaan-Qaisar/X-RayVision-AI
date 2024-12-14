@@ -90,7 +90,7 @@ router.post(
       const xrayPath = req.file.path;
 
       // Generate dummy result
-      const resultImagePath = "/backend/uploads/results/dummyresult.png";
+      const resultImagePath = "uploads/results/dummyresult.png";
       const disease = "Dummy";
       const description =
         "To store both the uploaded X-ray image and its results (another image, disease label, and description), we can enhance the PatientSchema to include additional fields for the results of each X-ray image.";
@@ -106,10 +106,14 @@ router.post(
 
       await patient.save();
 
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const xrayPath1 = `${baseUrl}/${xrayPath}`;
+      const resultImagePath1 = `${baseUrl}/${resultImagePath}`;
+
       // Send dummy response
       res.status(200).json({
         message: "X-ray uploaded and results generated",
-        result: { resultImagePath, disease, description },
+        result: { xrayPath1, resultImagePath1, disease, description },
       });
     } catch (err) {
       console.error(err.message);

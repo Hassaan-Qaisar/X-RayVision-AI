@@ -21,7 +21,8 @@ type Patient = {
 };
 
 type AnalysisResult = {
-  resultImagePath: string;
+  xrayPath1: string;
+  resultImagePath1: string;
   disease: string;
   description: string;
 };
@@ -377,16 +378,30 @@ export default function Upload() {
       <h2 className="text-2xl font-bold text-gray-900">Analysis Results</h2>
       {analysisResult && (
         <>
-          <div className="aspect-w-16 aspect-h-9">
-            <img
-              src={analysisResult.resultImagePath}
-              // src={`/backend/${analysisResult.resultImagePath}`}
-              alt={analysisResult.resultImagePath}
-              className="object-contain w-full h-full"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">
+                Original X-ray
+              </h3>
+              <img
+                src={analysisResult.xrayPath1}
+                alt="Original X-ray"
+                className="mt-2 w-full h-auto object-contain rounded-lg"
+              />
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">
+                Analysis Result
+              </h3>
+              <img
+                src={analysisResult.resultImagePath1}
+                alt="X-ray analysis result"
+                className="mt-2 w-full h-auto object-contain rounded-lg"
+              />
+            </div>
           </div>
           <div>
-            <h3 className="text-lg font-medium text-gray-900">Global Label</h3>
+            <h3 className="text-lg font-medium text-gray-900">Diagnosis</h3>
             <p className="mt-1 text-sm text-gray-600">
               {analysisResult.disease}
             </p>

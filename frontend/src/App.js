@@ -6,7 +6,7 @@ import Layout from "./components/Layout.tsx";
 import Home from "./pages/Home.tsx";
 import Login from "./pages/Login.tsx";
 import SignUp from "./pages/SignUp.tsx";
-import { History } from "./pages/History.tsx";
+import History from "./pages/History.tsx";
 import Upload from "./pages/Upload.tsx";
 import Profile from "./pages/Profile.tsx";
 
