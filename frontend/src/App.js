@@ -6,7 +6,7 @@ import {
   Outlet,
   Navigate,
 } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Layout from "./components/Layout.tsx";
 import Home from "./pages/Home.tsx";

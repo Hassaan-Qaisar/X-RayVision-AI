@@ -33,9 +33,15 @@ router.get("/getpatients", authMiddleware, async (req, res) => {
         result: xray.result
           ? {
               ...xray.result,
-              resultImage: xray.result.resultImage
-                ? `${BASE_URL}/${xray.result.resultImage}` // Append base URL
+              yoloResultImage: xray.result.yoloResultImage
+                ? `${BASE_URL}/${xray.result.yoloResultImage}`
                 : null,
+              heatmapResultImage: xray.result.heatmapResultImage
+                ? `${BASE_URL}/${xray.result.heatmapResultImage}`
+                : null,
+              disease: xray.result.disease || "Unknown",
+              description:
+                xray.result.description || "No description available",
             }
           : null,
       })),

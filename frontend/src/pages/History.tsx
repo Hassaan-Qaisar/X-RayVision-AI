@@ -7,7 +7,8 @@ type XrayImage = {
   imagePath: string;
   uploadDate: string;
   result: {
-    resultImage: string;
+    yoloResultImage: string;
+    heatmapResultImage: string;
     disease: string;
     description: string;
   };
@@ -52,7 +53,41 @@ export default function History() {
       }
 
       const data = await response.json();
-      setPatients(data.patients);
+      console.log("Response data:", data); // Debug log
+
+      // Add data validation and default values
+      const validatedPatients = data.patients.map((patient) => ({
+        ...patient,
+        xrayImages: patient.xrayImages.map((xray) => ({
+          ...xray,
+          result: xray.result
+            ? {
+                ...xray.result,
+                disease: xray.result.disease || "Unknown disease",
+                description:
+                  xray.result.description || "No description available",
+              }
+            : null,
+        })),
+      }));
+
+      setPatients(validatedPatients);
+
+      // Debug: Check if we have disease and description data
+      if (
+        validatedPatients.length > 0 &&
+        validatedPatients[0].xrayImages.length > 0 &&
+        validatedPatients[0].xrayImages[0].result
+      ) {
+        console.log(
+          "Sample disease:",
+          validatedPatients[0].xrayImages[0].result.disease
+        );
+        console.log(
+          "Sample description:",
+          validatedPatients[0].xrayImages[0].result.description
+        );
+      }
     } catch (error) {
       console.error("Error fetching patient history:", error);
       if (error.message === "No patients found for this user.") {
@@ -145,7 +180,7 @@ export default function History() {
                     {patient.xrayImages.map((xray, index) => (
                       <div key={index} className="bg-gray-50 rounded-lg p-4">
                         <div className="flex flex-wrap -mx-2">
-                          <div className="w-full md:w-1/2 px-2 mb-4">
+                          <div className="w-full md:w-1/3 px-2 mb-4">
                             <h4 className="text-md font-semibold text-gray-700 mb-2">
                               Original X-ray
                             </h4>
@@ -155,13 +190,23 @@ export default function History() {
                               className="w-full h-64 object-cover rounded-lg"
                             />
                           </div>
-                          <div className="w-full md:w-1/2 px-2 mb-4">
+                          <div className="w-full md:w-1/3 px-2 mb-4">
                             <h4 className="text-md font-semibold text-gray-700 mb-2">
-                              Analysis Result
+                              YOLO Detection
                             </h4>
                             <img
-                              src={xray.result.resultImage}
-                              alt="X-ray analysis result"
+                              src={xray.result?.yoloResultImage}
+                              alt="YOLO detection result"
+                              className="w-full h-64 object-cover rounded-lg"
+                            />
+                          </div>
+                          <div className="w-full md:w-1/3 px-2 mb-4">
+                            <h4 className="text-md font-semibold text-gray-700 mb-2">
+                              Heatmap Result
+                            </h4>
+                            <img
+                              src={xray.result?.heatmapResultImage}
+                              alt="Heatmap result"
                               className="w-full h-64 object-cover rounded-lg"
                             />
                           </div>
@@ -170,14 +215,17 @@ export default function History() {
                           <h4 className="text-md font-semibold text-gray-700 mb-2">
                             Diagnosis
                           </h4>
-                          <p className="text-gray-600">{xray.result.disease}</p>
+                          <p className="text-gray-600">
+                            {xray.result?.disease || "No diagnosis available"}
+                          </p>
                         </div>
                         <div className="mt-4">
                           <h4 className="text-md font-semibold text-gray-700 mb-2">
                             Description
                           </h4>
                           <p className="text-gray-600">
-                            {xray.result.description}
+                            {xray.result?.description ||
+                              "No description available"}
                           </p>
                         </div>
                         <div className="mt-4 text-sm text-gray-500">

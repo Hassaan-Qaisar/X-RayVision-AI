@@ -4,6 +4,7 @@ import Patient from "../models/Patient.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { analyzeXray } from "../utils/yoloInference.js";
 
 const router = express.Router();
 
@@ -64,6 +65,61 @@ router.post("/add", authMiddleware, async (req, res) => {
   }
 });
 
+// router.post(
+//   "/upload-xray/:patientId",
+//   authMiddleware,
+//   upload.single("xray"),
+//   async (req, res) => {
+//     const { patientId } = req.params;
+
+//     try {
+//       // Find patient
+//       const patient = await Patient.findOne({
+//         _id: patientId,
+//         user: req.user.id,
+//       });
+
+//       if (!patient) {
+//         return res.status(404).json({ message: "Patient not found" });
+//       }
+
+//       if (!req.file) {
+//         return res.status(400).json({ message: "No X-ray image uploaded" });
+//       }
+
+//       const xrayPath = req.file.path;
+
+//       const resultImagePath = "uploads/results/dummyresult.png";
+//       const disease = "Dummy";
+//       const description =
+//         "To store both the uploaded X-ray image and its results (another image, disease label, and description), we can enhance the PatientSchema to include additional fields for the results of each X-ray image.";
+
+//       patient.xrayImages.push({
+//         imagePath: xrayPath,
+//         result: {
+//           resultImage: resultImagePath,
+//           disease,
+//           description,
+//         },
+//       });
+
+//       await patient.save();
+
+//       const baseUrl = `${req.protocol}://${req.get("host")}`;
+//       const xrayPath1 = `${baseUrl}/${xrayPath}`;
+//       const resultImagePath1 = `${baseUrl}/${resultImagePath}`;
+
+//       res.status(200).json({
+//         message: "X-ray uploaded and results generated",
+//         result: { xrayPath1, resultImagePath1, disease, description },
+//       });
+//     } catch (err) {
+//       console.error(err.message);
+//       res.status(500).json({ message: "Server error" });
+//     }
+//   }
+// );
+
 router.post(
   "/upload-xray/:patientId",
   authMiddleware,
@@ -89,16 +145,19 @@ router.post(
       // Store uploaded X-ray image path
       const xrayPath = req.file.path;
 
-      // Generate dummy result
-      const resultImagePath = "uploads/results/dummyresult.png";
-      const disease = "Dummy";
-      const description =
-        "To store both the uploaded X-ray image and its results (another image, disease label, and description), we can enhance the PatientSchema to include additional fields for the results of each X-ray image.";
+      // Run YOLO inference on the uploaded X-ray
+      const analysisResults = await analyzeXray(xrayPath);
 
+      // Extract results
+      const { yoloResultPath, heatmapResultPath, disease, description } =
+        analysisResults;
+
+      // Save results to the patient's record
       patient.xrayImages.push({
         imagePath: xrayPath,
         result: {
-          resultImage: resultImagePath,
+          yoloResultImage: yoloResultPath,
+          heatmapResultImage: heatmapResultPath,
           disease,
           description,
         },
@@ -106,18 +165,28 @@ router.post(
 
       await patient.save();
 
+      // Get base URL for serving images
       const baseUrl = `${req.protocol}://${req.get("host")}`;
       const xrayPath1 = `${baseUrl}/${xrayPath}`;
-      const resultImagePath1 = `${baseUrl}/${resultImagePath}`;
+      const yoloResultPath1 = `${baseUrl}/${yoloResultPath}`;
+      const heatmapResultPath1 = `${baseUrl}/${heatmapResultPath}`;
 
-      // Send dummy response
+      // Send response with results
       res.status(200).json({
-        message: "X-ray uploaded and results generated",
-        result: { xrayPath1, resultImagePath1, disease, description },
+        message: "X-ray uploaded and analyzed successfully",
+        result: {
+          xrayPath1,
+          yoloResultPath1,
+          heatmapResultPath1,
+          disease,
+          description,
+        },
       });
     } catch (err) {
-      console.error(err.message);
-      res.status(500).json({ message: "Server error" });
+      console.error("Error analyzing X-ray:", err.message);
+      res
+        .status(500)
+        .json({ message: "Failed to analyze X-ray: " + err.message });
     }
   }
 );

@@ -22,7 +22,8 @@ type Patient = {
 
 type AnalysisResult = {
   xrayPath1: string;
-  resultImagePath1: string;
+  yoloResultPath1: string;
+  heatmapResultPath1: string;
   disease: string;
   description: string;
 };
@@ -179,7 +180,7 @@ export default function Upload() {
     }
   };
 
-  console.log(analysisResult);
+  // console.log(analysisResult);
 
   const renderStep1 = () => (
     <div className="space-y-4">
@@ -373,12 +374,75 @@ export default function Upload() {
     </div>
   );
 
+  // const renderStep3 = () => (
+  //   <div className="space-y-6">
+  //     <h2 className="text-2xl font-bold text-gray-900">Analysis Results</h2>
+  //     {analysisResult && (
+  //       <>
+  //         <div className="grid grid-cols-2 gap-4">
+  //           <div>
+  //             <h3 className="text-lg font-medium text-gray-900">
+  //               Original X-ray
+  //             </h3>
+  //             <img
+  //               src={analysisResult.xrayPath1}
+  //               alt="Original X-ray"
+  //               className="mt-2 w-full h-auto object-contain rounded-lg"
+  //             />
+  //           </div>
+  //           <div>
+  //             <h3 className="text-lg font-medium text-gray-900">
+  //               Analysis Result
+  //             </h3>
+  //             <img
+  //               src={analysisResult.resultImagePath1}
+  //               alt="X-ray analysis result"
+  //               className="mt-2 w-full h-auto object-contain rounded-lg"
+  //             />
+  //           </div>
+  //         </div>
+  //         <div>
+  //           <h3 className="text-lg font-medium text-gray-900">Diagnosis</h3>
+  //           <p className="mt-1 text-sm text-gray-600">
+  //             {analysisResult.disease}
+  //           </p>
+  //         </div>
+  //         <div>
+  //           <h3 className="text-lg font-medium text-gray-900">Description</h3>
+  //           <p className="mt-1 text-sm text-gray-600">
+  //             {analysisResult.description}
+  //           </p>
+  //         </div>
+  //       </>
+  //     )}
+  //     <button
+  //       type="button"
+  //       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+  //       onClick={() => {
+  //         setStep(1);
+  //         setXrayFile(null);
+  //         setAnalysisResult(null);
+  //         setSelectedPatient(null);
+  //         setPatientDetails({
+  //           name: "",
+  //           age: "",
+  //           gender: "",
+  //           description: "",
+  //         });
+  //       }}
+  //     >
+  //       <RefreshCw className="mr-2 h-4 w-4" />
+  //       Start New Analysis
+  //     </button>
+  //   </div>
+  // );
+
   const renderStep3 = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">Analysis Results</h2>
       {analysisResult && (
         <>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <h3 className="text-lg font-medium text-gray-900">
                 Original X-ray
@@ -391,11 +455,21 @@ export default function Upload() {
             </div>
             <div>
               <h3 className="text-lg font-medium text-gray-900">
-                Analysis Result
+                YOLO Detection
               </h3>
               <img
-                src={analysisResult.resultImagePath1}
-                alt="X-ray analysis result"
+                src={analysisResult.yoloResultPath1}
+                alt="YOLO detection result"
+                className="mt-2 w-full h-auto object-contain rounded-lg"
+              />
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">
+                Heatmap Analysis
+              </h3>
+              <img
+                src={analysisResult.heatmapResultPath1}
+                alt="Heatmap analysis"
                 className="mt-2 w-full h-auto object-contain rounded-lg"
               />
             </div>

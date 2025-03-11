@@ -113,7 +113,7 @@ export default function Layout() {
             </div>
           </div>
           <div className="mt-8 text-center text-sm">
-            © 2024 X-RayVision. All rights reserved.
+            © 2025 X-RayVision. All rights reserved.
           </div>
         </div>
       </footer>
