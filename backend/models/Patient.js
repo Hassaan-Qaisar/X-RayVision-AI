@@ -1,6 +1,46 @@
 import mongoose from "mongoose";
 
+const ResultSchema = new mongoose.Schema({
+  yoloResultImage: {
+    type: String,
+    required: true,
+  },
+  heatmapResultImage: {
+    type: String,
+    required: true,
+  },
+  disease: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+const XrayImageSchema = new mongoose.Schema({
+  imagePath: {
+    type: String,
+    required: true,
+  },
+  result: ResultSchema,
+  uploadDate: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
 const PatientSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   name: {
     type: String,
     required: true,
@@ -17,22 +57,11 @@ const PatientSchema = new mongoose.Schema({
   description: {
     type: String,
   },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
+  xrayImages: [XrayImageSchema],
+  createdAt: {
+    type: Date,
+    default: Date.now,
   },
-  xrayImages: [
-    {
-      imagePath: { type: String, required: true }, // Uploaded X-ray image
-      uploadDate: { type: Date, default: Date.now },
-      result: {
-        resultImage: { type: String }, // ML-generated result image
-        disease: { type: String }, // Disease detected
-        description: { type: String }, // Description of findings
-      },
-    },
-  ],
 });
 
 export default mongoose.model("Patient", PatientSchema);
