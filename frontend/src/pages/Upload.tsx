@@ -24,7 +24,13 @@ import {
   Microscope,
   Zap,
   ArrowRight,
+  RotateCcw,
+  ZoomIn,
+  ZoomOut,
+  X,
+  RotateCw,
 } from "lucide-react";
+import { format } from "date-fns";
 
 type Patient = {
   _id: string;
@@ -40,6 +46,105 @@ type AnalysisResult = {
   heatmapResultPath1: string;
   disease: string;
   description: string;
+};
+
+const ImageViewer = ({
+  isOpen,
+  onClose,
+  imageSrc,
+  title,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  imageSrc: string;
+  title: string;
+}) => {
+  const [scale, setScale] = useState(1);
+  const [rotation, setRotation] = useState(0);
+
+  const zoomIn = () => setScale((prev) => Math.min(prev + 0.25, 3));
+  const zoomOut = () => setScale((prev) => Math.max(prev - 0.25, 0.5));
+  const rotateClockwise = () => setRotation((prev) => prev + 90);
+  const rotateCounterClockwise = () => setRotation((prev) => prev - 90);
+  const resetView = () => {
+    setScale(1);
+    setRotation(0);
+  };
+
+  // Reset view when opening a new image
+  useEffect(() => {
+    resetView();
+  }, [imageSrc]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl bg-gray-900 rounded-lg shadow-2xl overflow-hidden">
+        <div className="flex justify-between items-center p-4 border-b border-gray-700">
+          <h3 className="text-xl font-medium text-white">{title}</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        <div className="relative h-[calc(100vh-12rem)] overflow-hidden bg-black flex items-center justify-center">
+          <img
+            src={imageSrc}
+            alt={title}
+            className="max-h-full max-w-full object-contain transition-all duration-200 ease-in-out"
+            style={{
+              transform: `scale(${scale}) rotate(${rotation}deg)`,
+            }}
+            onError={(e) => {
+              e.currentTarget.src = "/placeholder.svg";
+            }}
+          />
+        </div>
+
+        <div className="flex justify-center items-center gap-4 p-4 bg-gray-800">
+          <button
+            onClick={zoomIn}
+            className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white"
+            title="Zoom In"
+          >
+            <ZoomIn className="h-5 w-5" />
+          </button>
+          <button
+            onClick={zoomOut}
+            className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white"
+            title="Zoom Out"
+          >
+            <ZoomOut className="h-5 w-5" />
+          </button>
+          <button
+            onClick={rotateCounterClockwise}
+            className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white"
+            title="Rotate Counter-Clockwise"
+          >
+            <RotateCcw className="h-5 w-5" />
+          </button>
+          <button
+            onClick={rotateClockwise}
+            className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white"
+            title="Rotate Clockwise"
+          >
+            <RotateCw className="h-5 w-5" />
+          </button>
+          <button
+            onClick={resetView}
+            className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white"
+            title="Reset View"
+          >
+            <RefreshCw className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default function Upload() {
@@ -61,6 +166,18 @@ export default function Upload() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPatientListLoading, setIsPatientListLoading] = useState(true);
   const [dragActive, setDragActive] = useState(false);
+
+  // State for image viewer modal
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [currentImage, setCurrentImage] = useState("");
+  const [currentImageTitle, setCurrentImageTitle] = useState("");
+
+  // Function to open the image viewer
+  const openImageViewer = (imageSrc: string, title: string) => {
+    setCurrentImage(imageSrc);
+    setCurrentImageTitle(title);
+    setImageViewerOpen(true);
+  };
 
   useEffect(() => {
     fetchPatientList();
@@ -432,7 +549,7 @@ export default function Upload() {
                   id="description"
                   name="description"
                   rows={3}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-lg"
+                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-lg pl-2 pt-1 pr-1"
                   placeholder="Patient's medical history, symptoms, or other relevant information"
                   value={patientDetails.description}
                   onChange={handleInputChange}
@@ -744,7 +861,15 @@ export default function Upload() {
                   <Image className="h-4 w-4 mr-2 text-gray-500" />
                   Original X-ray
                 </h3>
-                <div className="aspect-square bg-black rounded-lg overflow-hidden shadow-md">
+                <div
+                  className="aspect-square bg-black rounded-lg overflow-hidden shadow-md cursor-pointer"
+                  onClick={() =>
+                    openImageViewer(
+                      analysisResult.xrayPath1 || "/placeholder.svg",
+                      "Original X-ray"
+                    )
+                  }
+                >
                   <img
                     src={analysisResult.xrayPath1 || "/placeholder.svg"}
                     alt="Original X-ray"
@@ -760,9 +885,17 @@ export default function Upload() {
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-gray-700 flex items-center">
                   <FileImage className="h-4 w-4 mr-2 text-gray-500" />
-                  YOLO Detection
+                  Bounding Boxes
                 </h3>
-                <div className="aspect-square bg-black rounded-lg overflow-hidden shadow-md">
+                <div
+                  className="aspect-square bg-black rounded-lg overflow-hidden shadow-md cursor-pointer"
+                  onClick={() =>
+                    openImageViewer(
+                      analysisResult.yoloResultPath1 || "/placeholder.svg",
+                      "Bounding Boxes"
+                    )
+                  }
+                >
                   <img
                     src={analysisResult.yoloResultPath1 || "/placeholder.svg"}
                     alt="YOLO detection result"
@@ -780,7 +913,15 @@ export default function Upload() {
                   <Microscope className="h-4 w-4 mr-2 text-gray-500" />
                   Heatmap Analysis
                 </h3>
-                <div className="aspect-square bg-black rounded-lg overflow-hidden shadow-md">
+                <div
+                  className="aspect-square bg-black rounded-lg overflow-hidden shadow-md cursor-pointer"
+                  onClick={() =>
+                    openImageViewer(
+                      analysisResult.heatmapResultPath1 || "/placeholder.svg",
+                      "Heatmap Analysis"
+                    )
+                  }
+                >
                   <img
                     src={
                       analysisResult.heatmapResultPath1 || "/placeholder.svg"
@@ -843,11 +984,31 @@ export default function Upload() {
                 <button
                   type="button"
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  // onClick={() => {
+                  //   toast.info(
+                  //     "Download functionality will be implemented soon"
+                  //   );
+                  // }}
                   onClick={() => {
-                    // Implement download or print functionality
-                    toast.info(
-                      "Download functionality will be implemented soon"
-                    );
+                    if (selectedPatient && analysisResult) {
+                      // Import function dynamically to reduce initial bundle size
+                      import("../utils/generatePDFreport")
+                        .then((module) => {
+                          const generatePdfReport = module.default;
+                          generatePdfReport(selectedPatient, analysisResult);
+                          toast.success("Report downloaded successfully!");
+                        })
+                        .catch((error) => {
+                          console.error("Error generating PDF:", error);
+                          toast.error(
+                            "Failed to generate report. Please try again."
+                          );
+                        });
+                    } else {
+                      toast.error(
+                        "Patient data or analysis results are missing"
+                      );
+                    }
                   }}
                 >
                   <ArrowRight className="mr-2 h-4 w-4" />
@@ -862,163 +1023,162 @@ export default function Upload() {
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8"
-    >
-      <div className="bg-white shadow-xl rounded-xl overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4">
-          <h1 className="text-2xl font-bold text-white">
-            Upload and Analyze X-ray
-          </h1>
-          <p className="text-blue-100 mt-1">
-            Get instant AI-powered analysis of chest X-rays
-          </p>
-        </div>
-
-        <div className="px-6 py-8">
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              {[1, 2, 3].map((stepNumber) => (
-                <div key={stepNumber} className="flex flex-col items-center">
-                  <div
-                    className={`flex items-center justify-center w-12 h-12 rounded-full ${
-                      step >= stepNumber
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-600"
-                    } ${step === stepNumber ? "ring-4 ring-blue-100" : ""}`}
-                  >
-                    {step > stepNumber ? (
-                      <CheckCircle className="h-6 w-6" />
-                    ) : (
-                      <span className="text-lg font-semibold">
-                        {stepNumber}
-                      </span>
-                    )}
-                  </div>
-                  <span
-                    className={`mt-2 text-sm font-medium ${
-                      step === stepNumber ? "text-blue-600" : "text-gray-500"
-                    }`}
-                  >
-                    {stepNumber === 1 && "Patient Details"}
-                    {stepNumber === 2 && "Upload X-ray"}
-                    {stepNumber === 3 && "Results"}
-                  </span>
-                </div>
-              ))}
-
-              <div className="hidden sm:block absolute left-0 right-0 top-1/2 transform -translate-y-1/2 z-0">
-                <div className="h-1 bg-gray-200 w-full">
-                  <div
-                    className="h-full bg-blue-600 transition-all duration-500"
-                    style={{ width: `${((step - 1) / 2) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
+    <div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8"
+      >
+        <div className="bg-white shadow-xl rounded-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4">
+            <h1 className="text-2xl font-bold text-white">
+              Upload and Analyze X-ray
+            </h1>
+            <p className="text-blue-100 mt-1">
+              Get instant AI-powered analysis of chest X-rays
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <AnimatePresence mode="wait">
-              {step === 1 && (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {renderStep1()}
-                </motion.div>
-              )}
+          <div className="px-6 py-8">
+            <div className="mb-8">
+              <div className="flex items-center justify-between">
+                {[1, 2, 3].map((stepNumber) => (
+                  <div key={stepNumber} className="flex flex-col items-center">
+                    <div
+                      className={`flex items-center justify-center w-12 h-12 rounded-full ${
+                        step >= stepNumber
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-gray-600"
+                      } ${step === stepNumber ? "ring-4 ring-blue-100" : ""}`}
+                    >
+                      {step > stepNumber ? (
+                        <CheckCircle className="h-6 w-6" />
+                      ) : (
+                        <span className="text-lg font-semibold">
+                          {stepNumber}
+                        </span>
+                      )}
+                    </div>
+                    <span
+                      className={`mt-2 text-sm font-medium ${
+                        step === stepNumber ? "text-blue-600" : "text-gray-500"
+                      }`}
+                    >
+                      {stepNumber === 1 && "Patient Details"}
+                      {stepNumber === 2 && "Upload X-ray"}
+                      {stepNumber === 3 && "Results"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-              {step === 2 && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {renderStep2()}
-                </motion.div>
-              )}
-
-              {step === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {renderStep3()}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {step < 3 && (
-              <div className="mt-8 flex justify-between">
-                {step > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setStep(step - 1)}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Previous
-                  </button>
-                )}
-
+            <form onSubmit={handleSubmit}>
+              <AnimatePresence mode="wait">
                 {step === 1 && (
-                  <button
-                    type="submit"
-                    disabled={
-                      isLoading || (isNewPatient ? false : !selectedPatient)
-                    }
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                  <motion.div
+                    key="step1"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        Next Step
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </button>
+                    {renderStep1()}
+                  </motion.div>
                 )}
 
                 {step === 2 && (
-                  <button
-                    type="submit"
-                    disabled={isLoading || !xrayFile}
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                  <motion.div
+                    key="step2"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                        Analyzing X-ray...
-                      </>
-                    ) : (
-                      <>
-                        Analyze X-ray
-                        <Microscope className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </button>
+                    {renderStep2()}
+                  </motion.div>
                 )}
-              </div>
-            )}
-          </form>
+
+                {step === 3 && (
+                  <motion.div
+                    key="step3"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {renderStep3()}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {step < 3 && (
+                <div className="mt-8 flex justify-between">
+                  {step > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setStep(step - 1)}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <ChevronLeft className="mr-2 h-4 w-4" />
+                      Previous
+                    </button>
+                  )}
+
+                  {step === 1 && (
+                    <button
+                      type="submit"
+                      disabled={
+                        isLoading || (isNewPatient ? false : !selectedPatient)
+                      }
+                      className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          Next Step
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {step === 2 && (
+                    <button
+                      type="submit"
+                      disabled={isLoading || !xrayFile}
+                      className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                          Analyzing X-ray...
+                        </>
+                      ) : (
+                        <>
+                          Analyze X-ray
+                          <Microscope className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
+            </form>
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+      <ImageViewer
+        isOpen={imageViewerOpen}
+        onClose={() => setImageViewerOpen(false)}
+        imageSrc={currentImage}
+        title={currentImageTitle}
+      />
+    </div>
   );
 }

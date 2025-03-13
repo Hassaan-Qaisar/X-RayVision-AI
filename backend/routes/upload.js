@@ -65,61 +65,6 @@ router.post("/add", authMiddleware, async (req, res) => {
   }
 });
 
-// router.post(
-//   "/upload-xray/:patientId",
-//   authMiddleware,
-//   upload.single("xray"),
-//   async (req, res) => {
-//     const { patientId } = req.params;
-
-//     try {
-//       // Find patient
-//       const patient = await Patient.findOne({
-//         _id: patientId,
-//         user: req.user.id,
-//       });
-
-//       if (!patient) {
-//         return res.status(404).json({ message: "Patient not found" });
-//       }
-
-//       if (!req.file) {
-//         return res.status(400).json({ message: "No X-ray image uploaded" });
-//       }
-
-//       const xrayPath = req.file.path;
-
-//       const resultImagePath = "uploads/results/dummyresult.png";
-//       const disease = "Dummy";
-//       const description =
-//         "To store both the uploaded X-ray image and its results (another image, disease label, and description), we can enhance the PatientSchema to include additional fields for the results of each X-ray image.";
-
-//       patient.xrayImages.push({
-//         imagePath: xrayPath,
-//         result: {
-//           resultImage: resultImagePath,
-//           disease,
-//           description,
-//         },
-//       });
-
-//       await patient.save();
-
-//       const baseUrl = `${req.protocol}://${req.get("host")}`;
-//       const xrayPath1 = `${baseUrl}/${xrayPath}`;
-//       const resultImagePath1 = `${baseUrl}/${resultImagePath}`;
-
-//       res.status(200).json({
-//         message: "X-ray uploaded and results generated",
-//         result: { xrayPath1, resultImagePath1, disease, description },
-//       });
-//     } catch (err) {
-//       console.error(err.message);
-//       res.status(500).json({ message: "Server error" });
-//     }
-//   }
-// );
-
 router.post(
   "/upload-xray/:patientId",
   authMiddleware,

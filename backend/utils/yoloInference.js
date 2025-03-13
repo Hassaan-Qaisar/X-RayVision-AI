@@ -63,9 +63,8 @@ export const analyzeXray = async (xrayPath) => {
 
         // Get disease identification based on YOLO results
         // In a real app, this would come from the model
-        const disease = "Pneumonia"; // Sample disease - in real app, this would come from the YOLO model
-        const description =
-          "The X-ray shows areas of opacity in the lower lobes of both lungs, consistent with pneumonia. The heart size appears normal and the diaphragm is intact.";
+        const disease = "Other Diseases";
+        const description = "1) Aortic enlargement \n 2) Cardiomegaly";
 
         resolve({
           yoloResultPath,

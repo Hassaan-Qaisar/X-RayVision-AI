@@ -155,7 +155,7 @@ export default function Home() {
                 diagnosis
               </p>
               <div className="mt-6 text-center">
-                <span className="inline-flex items-center text-blue-600 font-medium">
+                <span className="inline-flex items-center text-blue-600 font-medium cursor-pointer">
                   Get started
                   <svg
                     className="ml-1 w-4 h-4"
@@ -195,7 +195,7 @@ export default function Home() {
                 results
               </p>
               <div className="mt-6 text-center">
-                <span className="inline-flex items-center text-green-600 font-medium">
+                <span className="inline-flex items-center text-green-600 font-medium cursor-pointer">
                   View history
                   <svg
                     className="ml-1 w-4 h-4"
@@ -235,7 +235,7 @@ export default function Home() {
                 information
               </p>
               <div className="mt-6 text-center">
-                <span className="inline-flex items-center text-purple-600 font-medium">
+                <span className="inline-flex items-center text-purple-600 font-medium cursor-pointer">
                   Manage profile
                   <svg
                     className="ml-1 w-4 h-4"
@@ -392,7 +392,7 @@ export default function Home() {
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div className="bg-white p-8 rounded-xl shadow-md">
-            <div className="text-blue-600 text-4xl font-bold mb-2">99%</div>
+            <div className="text-blue-600 text-4xl font-bold mb-2">80%</div>
             <div className="text-gray-700 font-medium">Accuracy Rate</div>
           </div>
           <div className="bg-white p-8 rounded-xl shadow-md">
@@ -402,7 +402,7 @@ export default function Home() {
             </div>
           </div>
           <div className="bg-white p-8 rounded-xl shadow-md">
-            <div className="text-blue-600 text-4xl font-bold mb-2">&lt;5s</div>
+            <div className="text-blue-600 text-4xl font-bold mb-2">&lt;10s</div>
             <div className="text-gray-700 font-medium">Analysis Time</div>
           </div>
         </div>

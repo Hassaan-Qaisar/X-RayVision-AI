@@ -109,7 +109,7 @@ export default function Profile() {
       className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8"
     >
       <div className="bg-white shadow-xl rounded-xl overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 h-48 flex items-center justify-center relative">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 h-40 flex items-center justify-center relative">
           <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black/30 to-transparent"></div>
           <div className="absolute bottom-0 left-0 w-full px-8 py-4 flex justify-between items-end">
             <h1 className="text-2xl font-bold text-white">User Profile</h1>
@@ -124,7 +124,7 @@ export default function Profile() {
               </button>
             )}
           </div>
-          <div className="absolute -bottom-16 left-8">
+          {/* <div className="absolute -bottom-16 left-8">
             <div className="relative">
               <div className="w-32 h-32 rounded-full bg-white p-1 shadow-lg">
                 <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
@@ -140,10 +140,10 @@ export default function Profile() {
                 </button>
               )}
             </div>
-          </div>
+          </div> */}
         </div>
 
-        <div className="mt-20 px-8 pb-8">
+        <div className="mt-12 px-8 pb-8">
           <div className="border-b border-gray-200 mb-6">
             <nav className="-mb-px flex space-x-8">
               <button
