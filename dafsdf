@@ -1,0 +1,32 @@
+[33m5f4fe14[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mjamal/yolov8[m[33m)[m added yolov8s code
+[33m2af77c7[m added yolob8n results
+[33mea4f34c[m added yolov8n code
+[33meb894a1[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Merge pull request #8 from Hassaan-Qaisar/hassaan/add-model
+[33m4417d4a[m[33m ([m[1;31morigin/hassaan/add-model[m[33m)[m add PDF report download option
+[33mb6c8a9a[m improve css for all components
+[33mec9eea7[m added logic for running yolo script
+[33m8ac7003[m initial code
+[33mbaa1408[m Merge pull request #7 from Hassaan-Qaisar/classify-nb
+[33m22102bb[m[33m ([m[1;31morigin/classify-nb[m[33m)[m added complete notebook for classification
+[33mf3a89d3[m Merge pull request #6 from Hassaan-Qaisar/data-prep-notebooks
+[33me50a4fd[m added process_images notebook
+[33mcfa9eb9[m added resize_images notebook
+[33mc5b0ef5[m Merge pull request #5 from Hassaan-Qaisar/dicom-to-png
+[33m608afc1[m one commented block removed
+[33m9dd91c1[m added dicom_to_png notebook
+[33m9860604[m Update folder structure
+[33m3578e3d[m Merge pull request #4 from Hassaan-Qaisar/Classification-models-for-diseases-1
+[33mbf11c2b[m Add files via upload
+[33m9970eec[m Merge pull request #3 from Hassaan-Qaisar/Data-preprocessing
+[33m8b9b78c[m folder structure
+[33mbb8dac3[m Merge branch 'Data-preprocessing' of https://github.com/Hassaan-Qaisar/X-RayVision-AI into Data-preprocessing
+[33m24c34d3[m Add files via upload
+[33md2424d9[m completed with dummy api
+[33md19c689[m added functionalities
+[33m08ecbe0[m Stop tracking .env files
+[33m9ec6754[m Stop tracking .env files
+[33mb963872[m Merge pull request #2 from Hassaan-Qaisar/frontend-code
+[33md2d341f[m[33m ([m[1;31morigin/frontend-code[m[33m)[m added login, sign up and home pages
+[33md1f8bdf[m Merge pull request #1 from Hassaan-Qaisar/backend-server
+[33m324088a[m[33m ([m[1;31morigin/backend-server[m[33m)[m added server and react components code
+[33m16c327b[m initialize react
