@@ -20,8 +20,16 @@ export default function Login() {
     setError("");
     setIsLoading(true);
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!email || !password) {
       setError("Please fill in all fields");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
       setIsLoading(false);
       return;
     }

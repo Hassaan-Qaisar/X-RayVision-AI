@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   licenseNumber: { type: String, unique: true },
   phone: { type: String },
   yearsOfExperience: { type: Number },
+  createdAt: { type: Date, default: Date.now },
 });
 
 export default mongoose.model("User", userSchema);

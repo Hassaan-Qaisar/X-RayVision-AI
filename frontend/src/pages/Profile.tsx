@@ -31,11 +31,22 @@ export default function Profile() {
     licenseNumber: "",
     phone: "",
     yearsOfExperience: "",
+    createdAt: "",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+  const [error, setError] = useState("");
+
+  const formattedDate = new Date(profile.createdAt).toLocaleDateString(
+    "en-US",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }
+  );
 
   useEffect(() => {
     fetchProfile();
@@ -68,8 +79,62 @@ export default function Profile() {
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validateProfileUpdate = () => {
+    // Reset error
+    setError("");
+
+    // Validate name if it's being changed
+    if (profile.name && !/^[a-zA-Z\s]+$/.test(profile.name)) {
+      setError("Name can only contain letters and spaces");
+      return false;
+    }
+
+    // Validate email if it's being changed
+    if (profile.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
+      setError("Please enter a valid email address");
+      return false;
+    }
+
+    // Validate password if it's being changed (only if not empty)
+    if (profile.password) {
+      const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()]).{8,}$/;
+      if (!passwordRegex.test(profile.password)) {
+        setError(
+          "Password must contain at least 8 characters, including an uppercase letter, a number, and one of these special characters: !@#$%^&*()"
+        );
+        return false;
+      }
+    }
+
+    // Validate phone if it's being changed
+    if (profile.phone) {
+      // Pakistan phone format
+      const phoneRegex = /^(\+92|0)[0-9]{10}$/;
+      if (!phoneRegex.test(profile.phone.replace(/\s+/g, ""))) {
+        setError("Please enter a valid Pakistani phone number");
+        return false;
+      }
+    }
+
+    // Validate years of experience if it's being changed
+    if (profile.yearsOfExperience) {
+      const years = parseInt(profile.yearsOfExperience.toString());
+      if (isNaN(years) || years < 0 || years > 100) {
+        setError("Enter valid years of experience (0-100)");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateProfileUpdate()) {
+      return;
+    }
+
     try {
       setIsSaving(true);
       const response = await fetch("http://localhost:5000/api/profile/update", {
@@ -84,6 +149,7 @@ export default function Profile() {
         throw new Error("Failed to update profile");
       }
       toast.success("Profile updated successfully!");
+      setError("");
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -117,7 +183,10 @@ export default function Profile() {
               <button
                 type="button"
                 className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-md py-2 px-4 inline-flex items-center text-sm font-medium text-white hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-                onClick={() => setIsEditing(true)}
+                onClick={() => {
+                  setError("");
+                  setIsEditing(true);
+                }}
               >
                 <Edit2 className="h-4 w-4 mr-2" />
                 Edit Profile
@@ -152,7 +221,10 @@ export default function Profile() {
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200`}
-                onClick={() => setActiveTab("personal")}
+                onClick={() => {
+                  setError("");
+                  setActiveTab("personal");
+                }}
               >
                 Personal Information
               </button>
@@ -162,7 +234,10 @@ export default function Profile() {
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200`}
-                onClick={() => setActiveTab("professional")}
+                onClick={() => {
+                  setError("");
+                  setActiveTab("professional");
+                }}
               >
                 Professional Details
               </button>
@@ -172,12 +247,25 @@ export default function Profile() {
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200`}
-                onClick={() => setActiveTab("security")}
+                onClick={() => {
+                  setError("");
+                  setActiveTab("security");
+                }}
               >
                 Security
               </button>
             </nav>
           </div>
+
+          {error && (
+            <motion.div
+              className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mb-6"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <p className="text-red-500 text-sm">{error}</p>
+            </motion.div>
+          )}
 
           <form onSubmit={handleSubmit}>
             {activeTab === "personal" && (
@@ -423,7 +511,6 @@ export default function Profile() {
                       </h4>
                       <ul className="mt-2 text-sm text-blue-700 space-y-1">
                         <li>• Use a strong, unique password</li>
-                        <li>• Enable two-factor authentication</li>
                         <li>• Regularly update your security information</li>
                       </ul>
                     </div>
@@ -437,7 +524,10 @@ export default function Profile() {
                 <button
                   type="button"
                   className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-                  onClick={() => setIsEditing(false)}
+                  onClick={() => {
+                    setError("");
+                    setIsEditing(false);
+                  }}
                 >
                   Cancel
                 </button>
@@ -490,7 +580,7 @@ export default function Profile() {
                     <h3 className="text-lg font-medium text-gray-900">
                       Account Created
                     </h3>
-                    <p className="text-sm text-gray-500">January 15, 2023</p>
+                    <p className="text-sm text-gray-500">{formattedDate}</p>
                   </div>
                 </div>
               </div>
@@ -503,7 +593,7 @@ export default function Profile() {
                       Professional Status
                     </h3>
                     <p className="text-sm text-gray-500">
-                      Verified Healthcare Provider
+                      {profile.designation}
                     </p>
                   </div>
                 </div>

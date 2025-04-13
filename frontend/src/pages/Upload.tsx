@@ -287,8 +287,15 @@ export default function Upload() {
       if (!patientDetails.name.trim()) {
         throw new Error("Patient name is required");
       }
+      if (!/^[a-zA-Z\s]+$/.test(patientDetails.name)) {
+        throw new Error("Patient name can only contain letters and spaces");
+      }
       if (!patientDetails.age) {
         throw new Error("Patient age is required");
+      }
+      const ageNum = parseInt(patientDetails.age);
+      if (isNaN(ageNum) || ageNum < 0 || ageNum > 120) {
+        throw new Error("Patient age must be between 0-120 years");
       }
       if (!patientDetails.gender) {
         throw new Error("Patient gender is required");
@@ -531,7 +538,7 @@ export default function Upload() {
                     <option value="">Select gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
-                    <option value="other">Other</option>
+                    {/* <option value="other">Other</option> */}
                   </select>
                 </div>
               </div>
