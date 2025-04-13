@@ -207,7 +207,7 @@ export default function Upload() {
     setIsPatientListLoading(true);
     try {
       const response = await fetch(
-        "http://localhost:5000/api/upload/patients",
+        `${process.env.REACT_APP_API_BASE_URL}/api/upload/patients`,
         {
           method: "GET",
           headers: {
@@ -301,14 +301,17 @@ export default function Upload() {
         throw new Error("Patient gender is required");
       }
 
-      const response = await fetch("http://localhost:5000/api/upload/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(patientDetails),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/api/upload/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(patientDetails),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -367,7 +370,7 @@ export default function Upload() {
       formData.append("xray", xrayFile);
 
       const response = await fetch(
-        `http://localhost:5000/api/upload/upload-xray/${selectedPatient._id}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/upload/upload-xray/${selectedPatient._id}`,
         {
           method: "POST",
           headers: {

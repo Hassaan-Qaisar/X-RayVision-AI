@@ -55,12 +55,15 @@ export default function Profile() {
   const fetchProfile = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:5000/api/profile/get", {
-        method: "GET",
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/api/profile/get`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+        }
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch profile");
       }
@@ -137,14 +140,17 @@ export default function Profile() {
 
     try {
       setIsSaving(true);
-      const response = await fetch("http://localhost:5000/api/profile/update", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(profile),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/api/profile/update`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(profile),
+        }
+      );
       if (!response.ok) {
         throw new Error("Failed to update profile");
       }
@@ -344,7 +350,7 @@ export default function Profile() {
                           ? "bg-white focus:ring-blue-500 focus:border-blue-500"
                           : "bg-gray-50"
                       } block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm text-gray-900 sm:text-sm transition-colors duration-200`}
-                      placeholder="+1 (555) 987-6543"
+                      placeholder="+92 3XX XXXXXXX"
                       value={profile.phone}
                       onChange={handleInputChange}
                       disabled={!isEditing}

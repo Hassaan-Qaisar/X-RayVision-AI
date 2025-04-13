@@ -216,7 +216,7 @@ export default function History() {
     try {
       setLoading(true);
       const response = await fetch(
-        "http://localhost:5000/api/history/getpatients",
+        `${process.env.REACT_APP_API_BASE_URL}/api/history/getpatients`,
         {
           method: "GET",
           headers: {
