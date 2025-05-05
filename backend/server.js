@@ -47,6 +47,9 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Server is up and running!" });
+});
 
 const PORT = process.env.PORT || 9000;
 app.listen(PORT, () => {
