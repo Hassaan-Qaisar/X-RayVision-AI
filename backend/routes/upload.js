@@ -72,6 +72,8 @@ router.post(
   async (req, res) => {
     const { patientId } = req.params;
 
+    console.log("Received patientId:", patientId);
+
     try {
       // Find patient
       const patient = await Patient.findOne({
@@ -90,12 +92,19 @@ router.post(
       // Store uploaded X-ray image path
       const xrayPath = req.file.path;
 
+      console.log("Uploaded X-ray path:", xrayPath);
+
       // Run YOLO inference on the uploaded X-ray
       const analysisResults = await analyzeXray(xrayPath);
 
       // Extract results
-      const { yoloResultPath, heatmapResultPath, disease, description } =
-        analysisResults;
+      const {
+        yoloResultPath,
+        heatmapResultPath,
+        disease,
+        description,
+        disease_names,
+      } = analysisResults;
 
       // Save results to the patient's record
       patient.xrayImages.push({
@@ -105,6 +114,7 @@ router.post(
           heatmapResultImage: heatmapResultPath,
           disease,
           description,
+          disease_names,
         },
       });
 
@@ -125,6 +135,7 @@ router.post(
           heatmapResultPath1,
           disease,
           description,
+          disease_names,
         },
       });
     } catch (err) {

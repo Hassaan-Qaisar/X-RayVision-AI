@@ -31,6 +31,138 @@ import {
   RotateCw,
 } from "lucide-react";
 import { format } from "date-fns";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github.css";
+
+const markdownStyles = `
+  .prose {
+    color: #374151;
+    max-width: 65ch;
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+  .prose :where(h1, h2, h3, h4, h5, h6):not(:where([class~="not-prose"] *)) {
+    color: #111827;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .prose :where(pre):not(:where([class~="not-prose"] *)) {
+    background-color: #1f2937;
+    color: #e5e7eb;
+    overflow-x: auto;
+    font-weight: 400;
+    font-size: 0.875em;
+    line-height: 1.7142857;
+    margin-top: 1.7142857em;
+    margin-bottom: 1.7142857em;
+    border-radius: 0.375rem;
+    padding: 0.8571429em 1.1428571em;
+  }
+  .prose :where(blockquote):not(:where([class~="not-prose"] *)) {
+    font-weight: 500;
+    font-style: italic;
+    border-left-width: 0.25rem;
+    border-left-color: #e5e7eb;
+    quotes: "\\201C""\\201D""\\2018""\\2019";
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+    padding-left: 1em;
+  }
+  .prose :where(ol):not(:where([class~="not-prose"] *)) {
+    list-style-type: decimal;
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-left: 1.625em;
+  }
+  .prose :where(ul):not(:where([class~="not-prose"] *)) {
+    list-style-type: disc;
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-left: 1.625em;
+  }
+  .prose :where(hr):not(:where([class~="not-prose"] *)) {
+    border-color: #e5e7eb;
+    border-top-width: 1px;
+    margin-top: 3em;
+    margin-bottom: 3em;
+  }
+  .prose :where(figure):not(:where([class~="not-prose"] *)) {
+    margin-top: 2em;
+    margin-bottom: 2em;
+  }
+  .prose :where(p):not(:where([class~="not-prose"] *)) {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+  }
+  .prose :where(img):not(:where([class~="not-prose"] *)) {
+    margin-top: 2em;
+    margin-bottom: 2em;
+  }
+  .prose :where(video):not(:where([class~="not-prose"] *)) {
+    margin-top: 2em;
+    margin-bottom: 2em;
+  }
+  .prose :where(a):not(:where([class~="not-prose"] *)) {
+    color: #2563eb;
+    text-decoration: underline;
+    font-weight: 500;
+  }
+  .prose :where(a:hover):not(:where([class~="not-prose"] *)) {
+    color: #1d4ed8;
+  }
+  .prose :where(code):not(:where([class~="not-prose"] *)) {
+    color: #111827;
+    font-weight: 600;
+    font-size: 0.875em;
+  }
+  .prose :where(code):not(:where([class~="not-prose"] *))::before {
+    content: "\`";
+  }
+  .prose :where(code):not(:where([class~="not-prose"] *))::after {
+    content: "\`";
+  }
+  .prose :where(pre code):not(:where([class~="not-prose"] *))::before {
+    content: none;
+  }
+  .prose :where(pre code):not(:where([class~="not-prose"] *))::after {
+    content: none;
+  }
+  .prose :where(table):not(:where([class~="not-prose"] *)) {
+    width: 100%;
+    table-layout: auto;
+    text-align: left;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    font-size: 0.875em;
+    line-height: 1.7142857;
+  }
+  .prose :where(thead):not(:where([class~="not-prose"] *)) {
+    border-bottom-width: 1px;
+    border-bottom-color: #d1d5db;
+  }
+  .prose :where(thead th):not(:where([class~="not-prose"] *)) {
+    vertical-align: bottom;
+    padding-right: 0.5714286em;
+    padding-bottom: 0.5714286em;
+    padding-left: 0.5714286em;
+  }
+  .prose :where(tbody tr):not(:where([class~="not-prose"] *)) {
+    border-bottom-width: 1px;
+    border-bottom-color: #e5e7eb;
+  }
+  .prose :where(tbody tr:last-child):not(:where([class~="not-prose"] *)) {
+    border-bottom-width: 0;
+  }
+  .prose :where(tbody td):not(:where([class~="not-prose"] *)) {
+    vertical-align: baseline;
+    padding-top: 0.5714286em;
+    padding-right: 0.5714286em;
+    padding-bottom: 0.5714286em;
+    padding-left: 0.5714286em;
+  }
+    `;
 
 type Patient = {
   _id: string;
@@ -46,6 +178,7 @@ type AnalysisResult = {
   heatmapResultPath1: string;
   disease: string;
   description: string;
+  disease_names: string[];
 };
 
 const ImageViewer = ({
@@ -147,6 +280,158 @@ const ImageViewer = ({
   );
 };
 
+const AnalysisModal = ({
+  description,
+  onClose,
+}: {
+  description: string;
+  onClose: () => void;
+}) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div className="flex justify-between items-center p-4 border-b bg-gradient-to-r from-blue-600 to-blue-800">
+        <h3 className="text-lg font-semibold text-white flex items-center">
+          <FileText className="h-5 w-5 mr-2" />
+          AI Generated Analysis
+        </h3>
+        <button
+          onClick={onClose}
+          className="text-white hover:text-blue-200 transition-colors"
+        >
+          <X className="h-6 w-6" />
+        </button>
+      </div>
+      <div className="p-6 overflow-y-auto">
+        <div className="prose prose-blue max-w-none">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeHighlight]}
+            components={{
+              h1: ({ node, ...props }) => (
+                <h1
+                  className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b"
+                  {...props}
+                />
+              ),
+              h2: ({ node, ...props }) => (
+                <h2
+                  className="text-xl font-bold text-gray-800 mt-6 mb-3"
+                  {...props}
+                />
+              ),
+              h3: ({ node, ...props }) => (
+                <h3
+                  className="text-lg font-semibold text-gray-800 mt-5 mb-2"
+                  {...props}
+                />
+              ),
+              p: ({ node, ...props }) => (
+                <p className="text-gray-700 mb-4 leading-relaxed" {...props} />
+              ),
+              ul: ({ node, ...props }) => (
+                <ul className="list-disc pl-6 mb-4 space-y-1" {...props} />
+              ),
+              ol: ({ node, ...props }) => (
+                <ol className="list-decimal pl-6 mb-4 space-y-1" {...props} />
+              ),
+              li: ({ node, ...props }) => (
+                <li className="text-gray-700 mb-1" {...props} />
+              ),
+              a: ({ node, ...props }) => (
+                <a
+                  className="text-blue-600 hover:text-blue-800 underline"
+                  {...props}
+                />
+              ),
+              blockquote: ({ node, ...props }) => (
+                <blockquote
+                  className="border-l-4 border-blue-200 pl-4 py-2 my-4 bg-blue-50 rounded-r-md text-gray-700 italic"
+                  {...props}
+                />
+              ),
+              code: ({ node, inline, className, children, ...props }) => {
+                if (inline) {
+                  return (
+                    <code
+                      className="bg-gray-100 text-blue-700 px-1 py-0.5 rounded text-sm font-mono"
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  );
+                }
+                return (
+                  <div className="bg-gray-800 rounded-md overflow-hidden my-4">
+                    <div className="px-4 py-2 bg-gray-700 text-gray-200 text-xs font-mono">
+                      Code
+                    </div>
+                    <pre className="p-4 overflow-x-auto">
+                      <code className={`${className} text-sm`} {...props}>
+                        {children}
+                      </code>
+                    </pre>
+                  </div>
+                );
+              },
+              table: ({ node, ...props }) => (
+                <div className="overflow-x-auto my-6">
+                  <table
+                    className="min-w-full divide-y divide-gray-300 border border-gray-300 rounded-md"
+                    {...props}
+                  />
+                </div>
+              ),
+              thead: ({ node, ...props }) => (
+                <thead className="bg-gray-50" {...props} />
+              ),
+              tbody: ({ node, ...props }) => (
+                <tbody className="divide-y divide-gray-200" {...props} />
+              ),
+              tr: ({ node, ...props }) => (
+                <tr className="hover:bg-gray-50" {...props} />
+              ),
+              th: ({ node, ...props }) => (
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  {...props}
+                />
+              ),
+              td: ({ node, ...props }) => (
+                <td className="px-4 py-3 text-sm text-gray-700" {...props} />
+              ),
+              img: ({ node, ...props }) => (
+                <img
+                  className="max-w-full h-auto rounded-md my-4 border border-gray-200"
+                  {...props}
+                />
+              ),
+              hr: ({ node, ...props }) => (
+                <hr className="my-6 border-t border-gray-300" {...props} />
+              ),
+              strong: ({ node, ...props }) => (
+                <strong className="font-bold text-gray-900" {...props} />
+              ),
+              em: ({ node, ...props }) => (
+                <em className="italic text-gray-800" {...props} />
+              ),
+            }}
+          >
+            {description}
+          </ReactMarkdown>
+        </div>
+      </div>
+      <div className="p-4 border-t bg-gray-50 flex justify-end">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 export default function Upload() {
   const [step, setStep] = useState(1);
   const [isNewPatient, setIsNewPatient] = useState(true);
@@ -178,6 +463,8 @@ export default function Upload() {
     setCurrentImageTitle(title);
     setImageViewerOpen(true);
   };
+
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
 
   useEffect(() => {
     fetchPatientList();
@@ -387,6 +674,7 @@ export default function Upload() {
 
       const result = await response.json();
       setAnalysisResult(result.result);
+      console.log("Analysis Result:", result.result);
       setStep(3);
     } catch (error) {
       console.error("Error analyzing X-ray:", error);
@@ -951,7 +1239,7 @@ export default function Upload() {
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 className="text-md font-medium text-gray-900 mb-2 flex items-center">
                   <AlertCircle className="h-5 w-5 mr-2 text-blue-600" />
-                  Diagnosis
+                  Global Disease
                 </h3>
                 <div className="px-3 py-2 bg-white rounded-md border border-gray-200">
                   <p className="text-gray-900 font-medium">
@@ -963,10 +1251,32 @@ export default function Upload() {
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 className="text-md font-medium text-gray-900 mb-2 flex items-center">
                   <FileText className="h-5 w-5 mr-2 text-blue-600" />
-                  Description
+                  Local Analysis
                 </h3>
                 <div className="px-3 py-2 bg-white rounded-md border border-gray-200 max-h-32 overflow-y-auto">
-                  <p className="text-gray-700">{analysisResult.description}</p>
+                  <ul className="space-y-2">
+                    {analysisResult.disease_names.map((item, index) => {
+                      // Split the string to get disease name and confidence separately
+                      const parts = item.split(" (confidence: ");
+                      const diseaseName = parts[0];
+                      const confidence = parts[1]
+                        ? parts[1].replace(")", "")
+                        : "";
+
+                      return (
+                        <li
+                          key={index}
+                          className="flex items-center text-gray-700 border-b border-gray-100 last:border-b-0 pb-2 last:pb-0"
+                        >
+                          <div className="h-2 w-2 rounded-full bg-blue-500 mr-2"></div>
+                          <span className="font-medium">{diseaseName}</span>
+                          <span className="ml-2 text-gray-500 text-sm">
+                            (confidence: {confidence})
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
               </div>
             </div>
@@ -982,6 +1292,14 @@ export default function Upload() {
               </button>
 
               <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  onClick={() => setShowAnalysisModal(true)}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Show AI Analysis
+                </button>
                 <button
                   type="button"
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -1183,6 +1501,12 @@ export default function Upload() {
           </div>
         </div>
       </motion.div>
+      {showAnalysisModal && (
+        <AnalysisModal
+          description={analysisResult?.description || ""}
+          onClose={() => setShowAnalysisModal(false)}
+        />
+      )}
       <ImageViewer
         isOpen={imageViewerOpen}
         onClose={() => setImageViewerOpen(false)}

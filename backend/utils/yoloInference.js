@@ -2,22 +2,26 @@
 import { spawn } from "child_process";
 import path from "path";
 import fs from "fs";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 /**
  * Runs YOLO inference on the provided X-ray image.
  * @param {string} xrayPath - Path to the uploaded X-ray image
- * @returns {Promise<object>} - Object containing paths to result images
+ * @returns {Promise<object>} - Object containing paths to result images and analysis
  */
 export const analyzeXray = async (xrayPath) => {
   return new Promise(async (resolve, reject) => {
     try {
-      // Create a directory for storing the results if it doesn't exist
+      // Create directories for storing the results if they don't exist
       const resultDir = path.join("uploads", "results");
       if (!fs.existsSync(resultDir)) {
         fs.mkdirSync(resultDir, { recursive: true });
       }
 
-      // Generate unique filenames for result images
+      // Generate unique filenames for result images and JSON
       const timestamp = Date.now();
       const yoloResultPath = path.join(
         resultDir,
@@ -27,26 +31,49 @@ export const analyzeXray = async (xrayPath) => {
         resultDir,
         `heatmap_result_${timestamp}.png`
       );
+      const jsonOutputPath = path.join(resultDir, `analysis_${timestamp}.json`);
 
-      // Option 1: Using Python script directly through child process
-      const pythonProcess = spawn("python", [
-        "scripts/run_inference.py", // Create this script based on your provided code
-        "--input",
-        xrayPath,
-        "--yolo-output",
-        yoloResultPath,
-        "--heatmap-output",
-        heatmapResultPath,
-      ]);
+      // Set up environment for the Python process
+      const env = { ...process.env };
 
-      // Handle Python script output
+      console.log("Running YOLO inference on:", xrayPath);
+
+      // Run Python script for inference
+      const pythonProcess = spawn(
+        "python",
+        [
+          "scripts/model_results.py", // Using the new script
+          "--input",
+          xrayPath,
+          "--yolo-output",
+          yoloResultPath,
+          "--heatmap-output",
+          heatmapResultPath,
+          "--model",
+          path.join(process.cwd(), "scripts", "best.pt"),
+          "--output-json",
+          jsonOutputPath,
+        ],
+        { env: env }
+      );
+
+      // Capture stdout for direct JSON results
+      let stdoutData = "";
+      pythonProcess.stdout.on("data", (data) => {
+        stdoutData += data.toString();
+      });
+
+      // Handle Python script errors
       let errorOutput = "";
       pythonProcess.stderr.on("data", (data) => {
         errorOutput += data.toString();
       });
 
+      console.log("Python process started.");
+
       pythonProcess.on("close", (code) => {
         if (code !== 0) {
+          console.error("Python process exited with code:", code);
           console.error("Python process error:", errorOutput);
           return reject(
             new Error(`YOLO inference failed with code ${code}: ${errorOutput}`)
@@ -61,17 +88,52 @@ export const analyzeXray = async (xrayPath) => {
           return reject(new Error("Result files were not generated."));
         }
 
-        // Get disease identification based on YOLO results
-        // In a real app, this would come from the model
-        const disease = "Other Diseases";
-        const description = "1) Aortic enlargement \n 2) Cardiomegaly";
-
-        resolve({
-          yoloResultPath,
-          heatmapResultPath,
-          disease,
-          description,
-        });
+        // Try to parse the JSON results first from stdout
+        try {
+          const jsonResults = JSON.parse(stdoutData);
+          resolve({
+            yoloResultPath,
+            heatmapResultPath,
+            disease: jsonResults.disease,
+            description: jsonResults.description,
+            disease_names: jsonResults.disease_names,
+          });
+        } catch (e) {
+          // If stdout parsing fails, try to read the JSON file
+          try {
+            if (fs.existsSync(jsonOutputPath)) {
+              const jsonData = JSON.parse(
+                fs.readFileSync(jsonOutputPath, "utf8")
+              );
+              resolve({
+                yoloResultPath,
+                heatmapResultPath,
+                disease: jsonData.disease,
+                description: jsonData.description,
+                disease_names: jsonData.disease_names,
+              });
+            } else {
+              // Fallback to default values if JSON data is not available
+              resolve({
+                yoloResultPath,
+                heatmapResultPath,
+                disease: "Other Diseases",
+                description: "Analysis results are not available.",
+                disease_names: ["Unknown"],
+              });
+            }
+          } catch (jsonError) {
+            // Last resort fallback
+            console.error("Error parsing JSON results:", jsonError);
+            resolve({
+              yoloResultPath,
+              heatmapResultPath,
+              disease: "Other Diseases",
+              description: "Could not parse analysis results.",
+              disease_names: ["Unknown"],
+            });
+          }
+        }
       });
     } catch (error) {
       reject(error);

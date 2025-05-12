@@ -17,6 +17,10 @@ const ResultSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  disease_names: {
+    type: [String],
+    default: [],
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -52,7 +56,7 @@ const PatientSchema = new mongoose.Schema({
   gender: {
     type: String,
     required: true,
-    enum: ["male", "female", "other"],
+    enum: ["male", "female"],
   },
   description: {
     type: String,

@@ -42,6 +42,7 @@ router.get("/getpatients", authMiddleware, async (req, res) => {
               disease: xray.result.disease || "Unknown",
               description:
                 xray.result.description || "No description available",
+              disease_names: xray.result.disease_names || [],
             }
           : null,
       })),
