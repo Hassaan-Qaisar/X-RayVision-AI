@@ -33,7 +33,7 @@ from openai import OpenAI
 # except ImportError:
 #     HAS_OPENAI = False
 
-client = OpenAI(api_key="YOUR_OPENAI")
+client = OpenAI(api_key="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")
 
 
 # -------------------- Utils Functions --------------------
