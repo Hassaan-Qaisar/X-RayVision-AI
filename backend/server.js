@@ -22,18 +22,29 @@ const allowedOrigins = [
   "https://x-ray-vision-ai.vercel.app",
 ];
 
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//     credentials: true,
+//   })
+// );
+
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: allowedOrigins,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Explicitly allow OPTIONS
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+app.options("*", cors());
 
 app.use(express.json());
 
@@ -49,6 +60,15 @@ app.use("/api/history", historyRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.get("/api/test", (req, res) => {
   res.json({ message: "Server is up and running!" });
+});
+
+// After all your routes
+app.use((err, req, res, next) => {
+  if (err.message === "Not allowed by CORS") {
+    res.status(403).json({ error: "CORS not allowed" });
+  } else {
+    next(err);
+  }
 });
 
 const PORT = process.env.PORT || 9000;
