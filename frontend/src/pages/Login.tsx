@@ -212,14 +212,14 @@ export default function Login() {
               </label>
             </div>
 
-            <div className="text-sm">
+            {/* <div className="text-sm">
               <a
                 href="#"
                 className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200"
               >
                 Forgot your password?
               </a>
-            </div>
+            </div> */}
           </div>
 
           <div>

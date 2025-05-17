@@ -33,7 +33,7 @@ from openai import OpenAI
 # except ImportError:
 #     HAS_OPENAI = False
 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="")
 
 
 # -------------------- Utils Functions --------------------
@@ -312,10 +312,10 @@ def run_yolo_inference(image_path, output_path, model_path):
         # Preprocess the image
         preprocessed_image, _, _ = preprocess_image(image_path)
         if preprocessed_image is None:
-            return False, []
+            return False, [], []
         
         # Run YOLOv8 inference
-        results = model(preprocessed_image, conf=0.15)
+        results = model(preprocessed_image, conf=0.2)
         
         # Get detected conditions and their bounding boxes
         detected_conditions = []
@@ -334,7 +334,7 @@ def run_yolo_inference(image_path, output_path, model_path):
                 x1, y1, x2, y2 = box.xyxy[0].tolist()
                 detected_boxes.append([x1, y1, x2, y2])
         
-        # Get the result image with annotations
+        # Get the result image with annotations (even if no detections)
         result_image = results[0].plot()
         
         # Convert from RGB to BGR for OpenCV
@@ -509,10 +509,29 @@ def main():
         print("Error: YOLO inference failed")
         sys.exit(1)
     
+    # Check if any diseases were detected
+    if not detected_conditions or len(detected_conditions) == 0:
+        # No diseases detected - create results and exit
+        results = {
+            "disease": "No Abnormality Detected",
+            "disease_names": ["No abnormalities detected"],
+            "description": "No abnormalities were detected in this chest X-ray."
+        }
+        
+        # Save results to JSON file if requested
+        if args.output_json:
+            with open(args.output_json, 'w') as f:
+                json.dump(results, f, indent=2)
+        
+        # Print the results to stdout for capturing in Node.js
+        print(json.dumps(results))
+        print("No abnormalities detected in the X-ray")
+        sys.exit(0)
+    
     # Create heatmap object
     heatmap_model = yolov8_heatmap(
         weight=args.model,
-        conf_threshold=0.4,
+        conf_threshold=0.2,
         method="EigenGradCAM",
         layer=[10, 12, 14, 16, 18, -3],
         ratio=0.02,
@@ -520,47 +539,32 @@ def main():
         renormalize=False,
     )
 
-    # result_images = heatmap_model(args.input)
-
-    # if not result_images:
-    #     print("Error: Heatmap generation failed")
-    #     sys.exit(1)
-    
     # Generate and save heatmap
-    heatmap_success = heatmap_model.save_result(args.input, args.heatmap_output)
-    if not heatmap_success:
-        print("Error: Heatmap generation failed")
-        sys.exit(1)
+    try:
+        heatmap_success = heatmap_model.save_result(args.input, args.heatmap_output)
+        if not heatmap_success:
+            print("Warning: Heatmap generation failed, continuing with YOLO results only")
+            # Continue with processing without heatmap
+    except Exception as e:
+        print(f"Warning: Heatmap generation error: {str(e)}, continuing with YOLO results only")
+        # Continue with processing without heatmap
     
     # Process results
-    results = {}
-    
     # Get disease names (without confidence values)
-    disease_names = []
-    for cond in detected_conditions:
-        disease_name = cond.split(" (confidence:")[0]
-        disease_names.append(disease_name)
+    disease_names = detected_conditions  # Keep full condition strings with confidence
     
-    # Get disease category (hardcoded for now - could be improved with further logic)
-    if disease_names:
-        category = "Other Diseases"  # Default category
-        # You could add logic here to determine categories based on specific diseases
-    else:
-        category = "No Abnormality Detected"
-        disease_names = ["No abnormalities detected"]
+    # Get disease category (defaulting to "Other Diseases" when detections are present)
+    category = "Other Diseases"  # Default category when conditions are detected
     
     # Generate report if we have detected conditions
-    if disease_names and disease_names[0] != "No abnormalities detected":
-        # Get original image for explanation
-        _, _, original_image = preprocess_image(args.input)
-        explanation = get_technical_explanation(detected_conditions, detected_boxes, original_image)
-    else:
-        explanation = "No abnormalities were detected in this chest X-ray."
+    # Get original image for explanation
+    _, _, original_image = preprocess_image(args.input)
+    explanation = get_technical_explanation(detected_conditions, detected_boxes, original_image)
     
     # Create result dictionary
     results = {
         "disease": category,
-        "disease_names": detected_conditions,
+        "disease_names": disease_names,
         "description": explanation
     }
     

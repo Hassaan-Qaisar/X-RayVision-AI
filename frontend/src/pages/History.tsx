@@ -266,11 +266,11 @@ export default function History() {
       setPatients(validatedPatients);
     } catch (error) {
       console.error("Error fetching patient history:", error);
-      if (error.message === "No patients found for this user.") {
-        toast.error(error.message);
-      } else {
-        toast.error("Failed to load patient history. Please try again.");
-      }
+      // if (error.message === "No patients found for this user.") {
+      //   toast.error(error.message);
+      // } else {
+      //   toast.error("Failed to load patient history. Please try again.");
+      // }
     } finally {
       setLoading(false);
     }

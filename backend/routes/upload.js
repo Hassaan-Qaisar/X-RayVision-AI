@@ -111,7 +111,7 @@ router.post(
         imagePath: xrayPath,
         result: {
           yoloResultImage: yoloResultPath,
-          heatmapResultImage: heatmapResultPath,
+          heatmapResultImage: heatmapResultPath || "", // Handle null heatmap path
           disease,
           description,
           disease_names,
@@ -124,7 +124,10 @@ router.post(
       const baseUrl = `${req.protocol}://${req.get("host")}`;
       const xrayPath1 = `${baseUrl}/${xrayPath}`;
       const yoloResultPath1 = `${baseUrl}/${yoloResultPath}`;
-      const heatmapResultPath1 = `${baseUrl}/${heatmapResultPath}`;
+      // Only include heatmap if it exists
+      const heatmapResultPath1 = heatmapResultPath
+        ? `${baseUrl}/${heatmapResultPath}`
+        : null;
 
       // Send response with results
       res.status(200).json({

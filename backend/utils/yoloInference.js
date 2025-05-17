@@ -80,20 +80,20 @@ export const analyzeXray = async (xrayPath) => {
           );
         }
 
-        // Check if result files exist
-        if (
-          !fs.existsSync(yoloResultPath) ||
-          !fs.existsSync(heatmapResultPath)
-        ) {
-          return reject(new Error("Result files were not generated."));
+        // Check if YOLO result file exists (minimum requirement)
+        if (!fs.existsSync(yoloResultPath)) {
+          return reject(new Error("YOLO result file was not generated."));
         }
+
+        // Heatmap might be missing if generation failed but YOLO succeeded
+        const heatmapExists = fs.existsSync(heatmapResultPath);
 
         // Try to parse the JSON results first from stdout
         try {
           const jsonResults = JSON.parse(stdoutData);
           resolve({
             yoloResultPath,
-            heatmapResultPath,
+            heatmapResultPath: heatmapExists ? heatmapResultPath : null,
             disease: jsonResults.disease,
             description: jsonResults.description,
             disease_names: jsonResults.disease_names,
@@ -107,7 +107,7 @@ export const analyzeXray = async (xrayPath) => {
               );
               resolve({
                 yoloResultPath,
-                heatmapResultPath,
+                heatmapResultPath: heatmapExists ? heatmapResultPath : null,
                 disease: jsonData.disease,
                 description: jsonData.description,
                 disease_names: jsonData.disease_names,
@@ -116,7 +116,7 @@ export const analyzeXray = async (xrayPath) => {
               // Fallback to default values if JSON data is not available
               resolve({
                 yoloResultPath,
-                heatmapResultPath,
+                heatmapResultPath: heatmapExists ? heatmapResultPath : null,
                 disease: "Other Diseases",
                 description: "Analysis results are not available.",
                 disease_names: ["Unknown"],
@@ -127,7 +127,7 @@ export const analyzeXray = async (xrayPath) => {
             console.error("Error parsing JSON results:", jsonError);
             resolve({
               yoloResultPath,
-              heatmapResultPath,
+              heatmapResultPath: heatmapExists ? heatmapResultPath : null,
               disease: "Other Diseases",
               description: "Could not parse analysis results.",
               disease_names: ["Unknown"],

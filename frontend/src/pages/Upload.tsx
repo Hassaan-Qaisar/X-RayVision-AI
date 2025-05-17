@@ -514,7 +514,7 @@ export default function Upload() {
       setPatientList(data);
     } catch (error) {
       console.error("Error fetching patient list:", error);
-      toast.error(error.message);
+      // toast.error(error.message);
     } finally {
       setIsPatientListLoading(false);
     }

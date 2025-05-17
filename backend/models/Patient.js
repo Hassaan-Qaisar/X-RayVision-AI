@@ -3,11 +3,9 @@ import mongoose from "mongoose";
 const ResultSchema = new mongoose.Schema({
   yoloResultImage: {
     type: String,
-    required: true,
   },
   heatmapResultImage: {
     type: String,
-    required: true,
   },
   disease: {
     type: String,
